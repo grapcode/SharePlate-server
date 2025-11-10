@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 // ⚡ import from mongodb
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -40,8 +40,17 @@ async function run() {
     // findOne ---> get single data
 
     // 🔰 Use find to get data from the database via get
-    app.get('/availableFoods', async (req, res) => {
+    app.get('/foods', async (req, res) => {
       const result = await foodCollection.find().toArray();
+      res.send(result);
+    });
+
+    // 🔰 Get Single Food Details by ID
+    app.get('/foods/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await foodCollection.findOne(query);
       res.send(result);
     });
 
@@ -50,9 +59,9 @@ async function run() {
     //  insertMany
 
     // 💥 Post and insertOne to put data on the server
-    app.post('/availableFoods', async (req, res) => {
+    app.post('/foods', async (req, res) => {
       const data = req.body;
-      console.log(data);
+      // console.log(data);
       const result = await foodCollection.insertOne(data);
       res.send({
         success: true,
