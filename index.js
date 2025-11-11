@@ -43,11 +43,15 @@ async function run() {
       res.send(result);
     });
 
-    // 🔰 Get Single Food Details by ID
-    app.get('/foods/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await foodCollection.findOne(query);
+    // 🔰 Get food with email || user
+    app.get('/manageFoods', async (req, res) => {
+      const email = req.query.email;
+      const result = await foodCollection
+        .find({
+          donatorEmail: email,
+        })
+        .toArray();
+
       res.send(result);
     });
 
@@ -70,6 +74,46 @@ async function run() {
       const data = req.body;
       // console.log(data);
       const result = await foodCollection.insertOne(data);
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
+    // 🔰 Get Single Food Details by ID
+    app.get('/foods/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await foodCollection.findOne(query);
+      res.send(result);
+    });
+
+    //PUT || PATCH
+    //updateOne
+    //updateMany
+    // 🌀 put and updateOne to put data on the server ❌foodUpdate❌
+
+    app.put('/foodUpdate/:id', async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      const objectId = new ObjectId(id);
+      const filter = { _id: objectId };
+      const update = {
+        $set: data,
+      };
+      const result = await foodCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
+    // delete
+    // deleteOne
+    // deleteMany
+    // ❌delete and deleteOne to remove data on the server
+    app.delete('/foods/:id', async (req, res) => {
+      const { id } = req.params;
+      //    const objectId = new ObjectId(id)
+      // const filter = {_id: objectId}
+      const result = await foodCollection.deleteOne({ _id: new ObjectId(id) });
       res.send({
         success: true,
         result,
