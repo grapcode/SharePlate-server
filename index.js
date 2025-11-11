@@ -9,13 +9,11 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-//⚡ mongodb user & pass
-// SharePlate-DB
-// EYrYQVniThRUXR3o
+// env
+require('dotenv').config();
 
 // ⚡from mongodb cluster --> connection
-const uri =
-  'mongodb+srv://SharePlate-DB:EYrYQVniThRUXR3o@graphcodeit.1bzo799.mongodb.net/?appName=graphcodeit';
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@graphcodeit.1bzo799.mongodb.net/?appName=graphcodeit`;
 
 // ⚡ Create a MongoClient
 const client = new MongoClient(uri, {
@@ -49,8 +47,17 @@ async function run() {
     app.get('/foods/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-
       const result = await foodCollection.findOne(query);
+      res.send(result);
+    });
+
+    // ❄️  latest 6 data from backend for home page
+    app.get('/latest-foods', async (req, res) => {
+      const result = await foodCollection
+        .find()
+        .sort({ createdAt: 'desc' })
+        .limit(6)
+        .toArray();
       res.send(result);
     });
 
