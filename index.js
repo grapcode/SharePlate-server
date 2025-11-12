@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect(); // Connect the client to the server
+    // await client.connect(); // Connect the client to the server
 
     // 🔰 Database & Collection
     const db = client.db('SharePlate-DB');
