@@ -31,6 +31,7 @@ async function run() {
     // 🔰 Database & Collection
     const db = client.db('SharePlate-DB');
     const foodCollection = db.collection('foodData');
+    const requestCollection = db.collection('requestData');
 
     // 🔰 ====== add database related apis here ======= 🔰
 
@@ -80,11 +81,56 @@ async function run() {
       });
     });
 
+    // 💥 Post for request food
+    app.post('/requests', async (req, res) => {
+      const data = req.body;
+      // console.log(data);
+      const result = await requestCollection.insertOne(data);
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
+    // 🔰 Get food with email || user
+    app.get('/my-requests', async (req, res) => {
+      const email = req.query.email;
+      const result = await requestCollection
+        .find({
+          requestEmail: email,
+        })
+        .toArray();
+
+      res.send(result);
+    });
+
     // 🔰 Get Single Food Details by ID
     app.get('/foods/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.findOne(query);
+      res.send(result);
+    });
+    //  ====
+    // 🔹 Update request status
+    app.patch('/requests/:id', async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const result = await requestCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status } }
+      );
+      res.send(result);
+    });
+
+    // 🔹 Update food status
+    app.patch('/foods/:id', async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const result = await foodCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { foodStatus: status } }
+      );
       res.send(result);
     });
 
