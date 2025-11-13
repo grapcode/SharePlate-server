@@ -1,13 +1,21 @@
 const express = require('express');
 const cors = require('cors');
+// 🍁 Firebase Admin SDK
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceKey.json');
 // ⚡ import from mongodb
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
 
-//🍁 middleware
+//🎯 middleware
 app.use(express.json());
 app.use(cors());
+
+// 🍁 Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 // env
 require('dotenv').config();
@@ -23,6 +31,23 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// 🍁 Verify Token Middleware
+const verifyToken = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization)
+    return res.status(401).send({ message: 'Token not found!' });
+
+  const token = authorization.split(' ')[1];
+  try {
+    await admin.auth().verifyIdToken(token);
+    next();
+  } catch (error) {
+    res.status(401).send({ message: 'Unauthorized!' });
+  }
+};
+
+// ===============================  main api code
 
 async function run() {
   try {
@@ -45,7 +70,7 @@ async function run() {
     });
 
     // 🔰 Get food with email || user
-    app.get('/manageFoods', async (req, res) => {
+    app.get('/manageFoods', verifyToken, async (req, res) => {
       const email = req.query.email;
       const result = await foodCollection
         .find({
@@ -93,7 +118,7 @@ async function run() {
     });
 
     // 🔰 Get food with email || user
-    app.get('/my-requests', async (req, res) => {
+    app.get('/my-requests', verifyToken, async (req, res) => {
       const email = req.query.email;
       const result = await requestCollection
         .find({
@@ -105,7 +130,7 @@ async function run() {
     });
 
     // 🔰 Get Single Food Details by ID
-    app.get('/foods/:id', async (req, res) => {
+    app.get('/foods/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.findOne(query);
